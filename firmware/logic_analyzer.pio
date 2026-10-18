@@ -1,0 +1,4 @@
+.program logic_analyzer
+.wrap_target
+    in pins, 8
+.wrap

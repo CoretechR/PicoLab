@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "PicoLabLib") (type "KiCad") (uri "${KIPRJMOD}/project_libraries/symbols/PicoLabLib.kicad_sym") (options "") (descr ""))
+)

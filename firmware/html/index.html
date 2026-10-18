@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pico.Lab UI</title>
+    <style>
+        /* set style for the loading screen immediately */
+        body { 
+            background-color: #08111d; 
+            margin: 0; 
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        #loading-screen {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            background-color: #1e1e1e; 
+            z-index: 99999; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        #loading-screen.fade-out { opacity: 0; visibility: hidden; }
+        .loader-content { text-align: center; color: #ffffff; }
+        .loader-content h2 { margin: 20px 0 5px 0; font-size: 24px; letter-spacing: 1px; font-weight: 600; }
+        .loader-content p { margin: 0; color: #a0a0ab; font-size: 13px; }
+        .spinner { 
+            width: 45px; 
+            height: 45px; 
+            margin: 0 auto; 
+            border: 4px solid rgba(255, 255, 255, 0.1); 
+            border-left-color: #0d84fa; 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="winbox.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="loading-screen">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <h2>Pico.Lab</h2>
+            <p>Connecting...</p>
+        </div>
+    </div>
+
+    <div id="top-bar">
+        <div class="bar-left">
+            <div class="menu-item bold" id="start-btn"><span class="start-menu-icon" aria-hidden="true"></span><span>Pico.Lab</span></div>
+            <div id="taskbar-apps" class="taskbar-apps"></div>
+        </div>
+        <div class="bar-right">
+            <div id="connection-status" class="status-indicator">
+                <div class="status-dot"></div>
+                <span class="status-text">Disconnected</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="start-menu" class="hidden">
+        <div class="start-apps-grid">
+            <div class="app-icon launcher" data-app="power">
+                <div class="icon-box"><svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" fill="none" stroke-width="2"><path d="M 1.12,9.30 H 22.88"/><path d="M 9.06,15.44 H 14.89"/><path d="M 1.12,15.44 H 6.98"/><path d="M 16.96,15.44 H 22.88"></svg></div>
+                <span>Power Supply</span>
+            </div>
+            <div class="app-icon launcher" data-app="gpio">
+                <div class="icon-box"><svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" fill="none" stroke-width="2"><path d="M 18,12.75 H 15.75 V 6 C 15.75,0.75 7.5,0.75 7.5,6 v 6.75 H 5.25 9 V 21 12.75 h 5.25 v 9.75 -9.75 z"></path></svg></div>
+                <span>GPIO Control</span>
+            </div>
+            <div class="app-icon launcher" data-app="terminal">
+                <div class="icon-box"><svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" fill="none" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg></div>
+                <span>UART Terminal</span>
+            </div>
+            <div class="app-icon launcher" data-app="logic">
+                <div class="icon-box"><svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" fill="none" stroke-width="2"><path d="m 2.25,21 h 4.5 v -5.25 h 9 V 21 h 6"/><path d="M 2.25,9 V 3 h 4.5 v 6 h 4.5 V 3 h 4.5 v 6 h 4.5 V 3 h 1.5"/></svg></div>
+                <span>Logic Analyzer</span>
+            </div>
+            <div class="app-icon launcher" data-app="scope">
+                <div class="icon-box"><svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" fill="none" stroke-width="2"><path d="M 2.25,11.99 C 3.24,9.66 4.00,7.23 5.65,5.13 6.06,4.53 7.08,3.94 7.88,4.49 9.10,5.36 9.64,6.67 10.24,7.85 c 1.64,3.42 2.63,7.04 4.63,10.34 0.40,0.52 0.80,1.11 1.44,1.40 0.22,0.12 0.51,0.13 0.79,0.13 0.35,-0.12 0.69,-0.27 0.93,-0.55 0.92,-0.82 1.39,-1.92 1.92,-2.94 0.67,-1.39 1.23,-2.82 1.8,-4.24"></path></svg></div>
+                <span>Oscilloscope</span>
+            </div>
+            <div class="app-icon launcher" data-app="logger">
+                <div class="icon-box"><svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" fill="none" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg></div>
+                <span>Data Logger</span>
+            </div>
+            <div class="app-icon launcher" data-app="i2c">
+                <div class="icon-box"><svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">  <rect x="2.5" y="3.5" width="19" height="17" rx="3"></rect><path d="M6 2V3"></path><path d="M12 2V3"></path><path d="M18 2V3"></path><path d="M6 21v1"></path><path d="M12 21v1"></path><path d="M18 21v1"></path><text x="12" y="15.5" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold" font-size="10" font-family="Segoe UI, Arial, sans-serif">I<tspan baseline-shift="super" font-size="6">2</tspan>C</text></svg></div>
+                <span>I2C Master</span>
+            </div>
+            <div class="app-icon launcher" data-app="spi">
+                <div class="icon-box"><svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="17" rx="3"></rect><path d="M6 2V3"></path><path d="M12 2V3"></path><path d="M18 2V3"></path><path d="M6 21v1"></path><path d="M12 21v1"></path><path d="M18 21v1"></path><text x="12" y="15.3" text-anchor="middle" fill="currentColor" stroke="none" font-weight="bold" font-size="9" font-family="Segoe UI, Arial, sans-serif">SPI</text></svg></div>
+                <span>SPI Master</span>
+            </div>
+        </div>
+        
+        <div class="start-system-options">
+            <div class="sys-item launcher" data-app="settings">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                System Settings
+            </div>
+            <div class="sys-item launcher" data-app="about">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="18" x2="12" y2="11.3"></line><line x1="13.29" y1="7.9" x2="10.71" y2="7.9"></line></svg>
+                About This Device
+            </div>
+            <div class="sys-item" id="btn-reboot">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M 19.82,17.11 C 14.80,24.80 2.85,21.38 2.67,12.19 2.48,3.01 14.27,-0.90 19.61,6.58 m 0.11,-2.81 0.46,3.34 -3.36,-0.45 z"></path></svg>
+                Reboot
+            </div>
+            <div class="sys-item text-red" id="btn-bootsel-mode">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M 19.82,17.11 C 14.80,24.80 2.85,21.38 2.67,12.19 2.48,3.01 14.27,-0.90 19.61,6.58 m 0.11,-2.81 0.46,3.34 -3.36,-0.45 z"></path></svg>
+                Reboot to BOOTSEL Mode
+            </div>
+        </div>
+    </div>
+
+    <div style="display: none;">
+        
+        <div id="template-power" class="app-content">
+            <div class="scope-layout power-app">
+                
+                <div class="power-controls">
+                    
+                    <div class="power-control-card" data-output="5v">
+                        <div class="ch-row">
+                            <span class="ch-label" style="color: #fff;">5.0V Fixed</span>
+                            <button class="power-toggle active" disabled>ON</button>
+                        </div>
+                        <div class="ch-row" style="margin-top: 8px;">
+                            <span class="ch-label normal-case">CURRENT</span>
+                            <span class="ch-label normal-case val-5v" style="color: #fff;">0 mA</span>
+                        </div>
+                    </div>
+
+                    <div class="power-control-card" data-output="3v3">
+                        <div class="ch-row">
+                            <span class="ch-label" style="color: #fff;">3.3V Fixed</span>
+                            <button class="power-toggle active" disabled>ON</button>
+                        </div>
+                        <div class="ch-row" style="margin-top: 8px;">
+                            <span class="ch-label normal-case">CURRENT</span>
+                            <span class="ch-label normal-case val-3v3" style="color: #fff;">0 mA</span>
+                        </div>
+                    </div>
+
+                    <div class="power-control-card" data-output="adj">
+                        <div class="ch-row">
+                            <span class="ch-label" style="color: #fff;">ADJ Output</span>
+                            <button class="power-toggle active">ON</button>
+                        </div>
+                        <div class="ch-row">
+                            <span class="ch-label normal-case">VOLTAGE (V)</span>
+                            <div class="offset-control" style="width: 65px;">
+                                <input type="number" class="power-voltage-input" step="0.1" min="0.5" max="5.0" value="1.10">
+                            </div>
+                        </div>
+                        <div class="ch-row">
+                            <span class="ch-label normal-case">LIMIT (mA)</span>
+                            <div class="offset-control" style="width: 65px;">
+                                <input type="number" class="power-current-limit-input" step="50" min="50" max="500" value="500">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="power-graphs">
+                    
+                    <div class="graph-container-bare power-graph-panel">
+                        <div class="graph-header">
+                            <span class="ch-label normal-case">Output Current (mA)</span>
+                            <div class="legend">
+                                <span style="color: #c68e58;">■ 5V</span>
+                                <span style="color: #c65a58;">■ 3.3V</span>
+                                <span style="color: #b3b3b3;">■ ADJ</span>
+                            </div>
+                        </div>
+                        <div class="canvas-wrapper">
+                            <canvas class="power-current-canvas"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="graph-container-bare power-graph-panel">
+                        <div class="graph-header">
+                            <span class="ch-label normal-case">ADJ Voltage (V)</span>
+                            <div class="legend">
+                                <span style="color: #b3b3b3;">■ ADJ</span>
+                            </div>
+                        </div>
+                        <div class="canvas-wrapper">
+                            <canvas class="power-voltage-canvas"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="template-logic" class="app-content">
+            <div class="logic-layout">
+                <div class="logic-channels">
+                    <button class="pin-select-btn active" data-pin="D1">D1</button>
+                    <button class="pin-select-btn active" data-pin="D2">D2</button>
+                    <button class="pin-select-btn" data-pin="D3">D3</button>
+                    <button class="pin-select-btn" data-pin="D4">D4</button>
+                    <button class="pin-select-btn" data-pin="D5">D5</button>
+                    <button class="pin-select-btn" data-pin="D6">D6</button>
+                    <button class="pin-select-btn" data-pin="D7">D7</button>
+                    <button class="pin-select-btn" data-pin="D8">D8</button>
+                </div>
+
+                <div class="graph-container-bare logic-canvas-wrapper">
+                    <canvas id="logic-canvas"></canvas>
+                </div>
+
+                <div class="logic-controls control-bar">
+                    <button class="action-btn outline run-control-btn btn-run-stop stopped">
+                        <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle; margin-right: 4px;"><path fill="currentColor" d="M8 5v14l11-7z"/></svg> Run
+                    </button>
+
+                    <div class="decoder-config-wrap">
+                        <button class="action-btn outline decoder-toggle" title="Configure protocol decoder">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="8" cy="7" r="2" fill="#333"/><circle cx="15" cy="12" r="2" fill="#333"/><circle cx="11" cy="17" r="2" fill="#333"/></svg>
+                            Decode...
+                        </button>
+                        <div class="popup-menu decoder-menu">
+                            <div class="menu-item">
+                                <label>Protocol</label>
+                                <select class="decoder-protocol">
+                                    <option value="off">Off</option>
+                                    <option value="spi">SPI</option>
+                                    <option value="i2c">I2C</option>
+                                    <option value="uart">UART</option>
+                                </select>
+                            </div>
+                            <div class="menu-item decoder-spi-options">
+                                <label>Clock</label>
+                                <select class="decoder-sck"><option value="0">D1</option><option value="1">D2</option><option value="2">D3</option><option value="3">D4</option><option value="4">D5</option><option value="5">D6</option><option value="6">D7</option><option value="7">D8</option></select>
+                                <label>MOSI</label>
+                                <select class="decoder-mosi"><option value="0">D1</option><option value="1" selected>D2</option><option value="2">D3</option><option value="3">D4</option><option value="4">D5</option><option value="5">D6</option><option value="6">D7</option><option value="7">D8</option></select>
+                                <label>MISO</label>
+                                <select class="decoder-miso"><option value="0">D1</option><option value="1">D2</option><option value="2" selected>D3</option><option value="3">D4</option><option value="4">D5</option><option value="5">D6</option><option value="6">D7</option><option value="7">D8</option></select>
+                                <label>CS (active low)</label>
+                                <select class="decoder-cs"><option value="0" selected>D1</option><option value="1">D2</option><option value="2">D3</option><option value="3">D4</option><option value="4">D5</option><option value="5">D6</option><option value="6">D7</option><option value="7">D8</option><option value="-1">None</option></select>
+                                <label>Mode</label>
+                                <select class="decoder-spi-mode"><option value="0">Mode 0</option><option value="1">Mode 1</option><option value="2">Mode 2</option><option value="3">Mode 3</option></select>
+                            </div>
+                            <div class="menu-item decoder-i2c-options">
+                                <label>SCL</label>
+                                <select class="decoder-scl"><option value="0">D1</option><option value="1" selected>D2</option><option value="2">D3</option><option value="3">D4</option><option value="4">D5</option><option value="5">D6</option><option value="6">D7</option><option value="7">D8</option></select>
+                                <label>SDA</label>
+                                <select class="decoder-sda"><option value="0" selected>D1</option><option value="1">D2</option><option value="2">D3</option><option value="3">D4</option><option value="4">D5</option><option value="5">D6</option><option value="6">D7</option><option value="7">D8</option></select>
+                            </div>
+                            <div class="menu-item decoder-uart-options">
+                                <label>RX</label>
+                                <select class="decoder-rx"><option value="0" selected>D1</option><option value="1">D2</option><option value="2">D3</option><option value="3">D4</option><option value="4">D5</option><option value="5">D6</option><option value="6">D7</option><option value="7">D8</option></select>
+                                <label>Baud</label>
+                                <select class="decoder-baud"><option>300</option><option>1200</option><option>2400</option><option>4800</option><option>9600</option><option>19200</option><option>38400</option><option>57600</option><option>74880</option><option selected>115200</option><option>230400</option><option>250000</option><option>500000</option><option>1000000</option><option>2000000</option></select>
+                            </div>
+                            <button class="action-btn outline decoder-apply">Apply</button>
+                        </div>
+                    </div>
+                    
+                    <div style="flex-grow: 1;"></div>
+                    <div class="divider"></div>
+
+                    <span class="ctrl-label">Trigger</span>
+                    <select class="compact-select trig-src" style="width: 60px;">
+                        <option value="0">D1</option>
+                        <option value="1">D2</option>
+                        <option value="2">D3</option>
+                        <option value="3">D4</option>
+                        <option value="4">D5</option>
+                        <option value="5">D6</option>
+                        <option value="6">D7</option>
+                        <option value="7">D8</option>
+                    </select>
+                    
+                    <button class="action-btn outline icon-btn trig-edge" title="Toggle Edge">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 16h6l4-8h6" stroke-linejoin="round"/></svg>
+                    </button>
+
+                    <div class="divider"></div>
+
+                    <span class="ctrl-label">Sample Rate</span>
+                    <select class="compact-select sample-rate" style="width: 125px;">
+                        <option value="100000000">100 MS/s</option>
+                        <option value="50000000">50 MS/s</option>
+                        <option value="20000000">20 MS/s</option>
+                        <option value="10000000" selected>10 MS/s</option>
+                        <option value="5000000">5 MS/s</option>
+                        <option value="2000000">2 MS/s</option>
+                        <option value="1000000">1 MS/s</option>
+                        <option value="500000">500 kS/s</option>
+                        <option value="200000">200 kS/s</option>
+                        <option value="100000">100 kS/s</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div id="template-logger" class="app-content">
+            <div class="configurator-container logger-layout" style="gap: 8px;">
+                
+                <div style="display: flex; justify-content: center; align-items: flex-start; gap: 24px; flex-shrink: 0; padding: 10px 0;">
+                    
+                    <div class="logic-channels" style="grid-template-rows: repeat(2, 40px);">
+                        <button class="pin-select-btn active" data-type="A" data-pin="A1">A1</button>
+                        <button class="pin-select-btn active" data-type="A" data-pin="A2">A2</button>
+                        <button class="pin-select-btn" data-type="A" data-pin="A3">A3</button>
+                        <button class="pin-select-btn" data-type="A" data-pin="A4">A4</button>
+                        <button class="pin-select-btn" data-type="P" data-pin="I5" title="5V current">I5V0</button>
+                        <button class="pin-select-btn" data-type="P" data-pin="I3" title="3.3V current">I3V3</button>
+                        <button class="pin-select-btn" data-type="P" data-pin="IA" title="ADJ current">IADJ</button>
+                        <button class="pin-select-btn" data-type="P" data-pin="VA" title="ADJ voltage">VADJ</button>
+                    </div>
+
+                    <div class="logic-channels">
+                        <button class="pin-select-btn active" data-type="D" data-pin="D1">D1</button>
+                        <button class="pin-select-btn active" data-type="D" data-pin="D2">D2</button>
+                        <button class="pin-select-btn" data-type="D" data-pin="D3">D3</button>
+                        <button class="pin-select-btn" data-type="D" data-pin="D4">D4</button>
+                        <button class="pin-select-btn" data-type="D" data-pin="D5">D5</button>
+                        <button class="pin-select-btn" data-type="D" data-pin="D6">D6</button>
+                        <button class="pin-select-btn" data-type="D" data-pin="D7">D7</button>
+                        <button class="pin-select-btn" data-type="D" data-pin="D8">D8</button>
+                    </div>
+
+                </div>
+
+                <div class="graph-container-bare" style="min-height: 200px;">
+                    <canvas class="logger-canvas"></canvas>
+                </div>
+
+                <div class="control-bar" style="padding-top: 4px;">
+                    <div class="btn-group" style="display: flex; gap: 8px;">
+                        <button class="action-btn outline run-control-btn btn-toggle-record" title="Start Recording">
+                            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+                            <span>Run</span>
+                        </button>
+                        <button class="action-btn outline icon-btn btn-clear log-clear-red" title="Clear">
+                            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12Z"/></svg>
+                        </button>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px; margin-left: 12px;">
+                        <span style="color: #a0a0ab; font-size: 11px; font-weight: 500;">Rate:</span>
+                        <select class="compact-select sample-rate" style="width: 70px;">
+                            <option value="100">0.1s</option>
+                            <option value="1000" selected>1s</option>
+                            <option value="2000">2s</option>
+                            <option value="5000">5s</option>
+                            <option value="10000">10s</option>
+                            <option value="20000">20s</option>
+                        </select>
+                    </div>
+
+                    <button class="action-btn outline export-btn" title="Export CSV" style="margin-left: auto; display: flex; align-items: center; gap: 6px;">
+                        <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M5 20h14v-2H5m14-9h-4V3H9v6H5l7 7z"/></svg> Export .CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="template-scope" class="app-content">
+            <div class="scope-layout">
+                <div class="scope-channels">
+                    <div class="scope-ch-card" data-ch="A1">
+                        <button class="ch-toggle active">CH A1</button>
+                        <div class="ch-row">
+                            <span class="ch-label">SCALE (V/DIV)</span>
+                            <select class="compact-select ch-scale">
+                                <option value="0.1">0.1</option>
+                                <option value="0.5">0.5</option>
+                                <option value="1.0" selected>1.0</option>
+                            </select>
+                        </div>
+                        <div class="ch-row">
+                            <span class="ch-label">OFFSET (V)</span>
+                            <div class="offset-control">
+                                <input type="number" step="0.1" value="0.0" class="ch-offset">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="scope-ch-card" data-ch="A2">
+                        <button class="ch-toggle active">CH A2</button>
+                        <div class="ch-row">
+                            <span class="ch-label">SCALE (V/DIV)</span>
+                            <select class="compact-select ch-scale">
+                                <option value="0.1">0.1</option>
+                                <option value="0.5">0.5</option>
+                                <option value="1.0" selected>1.0</option>
+                            </select>
+                        </div>
+                        <div class="ch-row">
+                            <span class="ch-label">OFFSET (V)</span>
+                            <div class="offset-control">
+                                <input type="number" step="0.1" value="0.0" class="ch-offset">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="scope-ch-card" data-ch="A3">
+                        <button class="ch-toggle">CH A3</button>
+                        <div class="ch-row">
+                            <span class="ch-label">SCALE (V/DIV)</span>
+                            <select class="compact-select ch-scale" disabled>
+                                <option value="0.1">0.1</option>
+                                <option value="0.5">0.5</option>
+                                <option value="1.0" selected>1.0</option>
+                            </select>
+                        </div>
+                        <div class="ch-row">
+                            <span class="ch-label">OFFSET (V)</span>
+                            <div class="offset-control">
+                                <input type="number" step="0.1" value="0.0" class="ch-offset" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="scope-ch-card" data-ch="A4">
+                        <button class="ch-toggle">CH A4</button>
+                        <div class="ch-row">
+                            <span class="ch-label">SCALE (V/DIV)</span>
+                            <select class="compact-select ch-scale" disabled>
+                                <option value="0.1">0.1</option>
+                                <option value="0.5">0.5</option>
+                                <option value="1.0" selected>1.0</option>
+                            </select>
+                        </div>
+                        <div class="ch-row">
+                            <span class="ch-label">OFFSET (V)</span>
+                            <div class="offset-control">
+                                <input type="number" step="0.1" value="0.0" class="ch-offset" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="graph-container-bare scope-canvas-wrapper">
+                    <canvas class="scope-canvas"></canvas>
+                </div>
+
+                <div class="scope-controls control-bar">
+                    <button class="action-btn outline run-control-btn btn-run-stop stopped">
+                        <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle; margin-right: 4px;"><path fill="currentColor" d="M8 5v14l11-7z"/></svg> Run
+                    </button>
+                    
+                    <div class="divider"></div>
+
+                    <span class="ctrl-label">Mode</span>
+                    <div class="segmented-control mode-selector" style="width: 160px;">
+                        <button class="sub-btn active" data-mode="auto">Auto</button>
+                        <button class="sub-btn" data-mode="normal">Normal</button>
+                        <button class="sub-btn" data-mode="single">Single</button>
+                    </div>
+
+                    <div style="flex-grow: 1;"></div>
+                    <div class="divider"></div>
+
+                    <span class="ctrl-label">Trigger</span>
+                    <select class="compact-select trig-src" style="width: 55px;">
+                        <option value="A1">A1</option>
+                        <option value="A2">A2</option>
+                        <option value="A3">A3</option>
+                        <option value="A4">A4</option>
+                    </select>
+                    
+                    <button class="action-btn outline icon-btn trig-edge" title="Toggle Edge">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 16h6l4-8h6" stroke-linejoin="round"/></svg>
+                    </button>
+
+                    <div class="offset-control trig-level-wrapper" style="width: 65px;">
+                        <input type="number" step="0.1" value="1.5" class="trig-level">
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <span class="ctrl-label">Timebase</span>
+                    <select class="compact-select timebase" style="width: 100px;">
+                        <option value="0.1">100 µs/div</option>
+                        <option value="0.5">500 µs/div</option>
+                        <option value="1">1 ms/div</option>
+                        <option value="5">5 ms/div</option>
+                        <option value="10" selected>10 ms/div</option>
+                        <option value="50">50 ms/div</option>
+                        <option value="100">100 ms/div</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="template-gpio" class="app-content">
+            <div class="configurator-container">
+                <div class="logic-channels" style="margin: 0 auto; padding-top: 10px;">
+                    <button class="pin-select-btn" data-pin="D1">D1</button>
+                    <button class="pin-select-btn" data-pin="D2">D2</button>
+                    <button class="pin-select-btn" data-pin="D3">D3</button>
+                    <button class="pin-select-btn" data-pin="D4">D4</button>
+                    <button class="pin-select-btn" data-pin="D5">D5</button>
+                    <button class="pin-select-btn" data-pin="D6">D6</button>
+                    <button class="pin-select-btn" data-pin="D7">D7</button>
+                    <button class="pin-select-btn" data-pin="D8">D8</button>
+                </div>
+                <div class="pin-grid"></div>
+            </div>
+        </div>
+
+        <div id="template-terminal" class="app-content">
+            <div class="terminal-container">
+                <div class="panel terminal-display">
+                    <div class="output-content"></div>
+                </div>
+                <div class="control-bar">
+                    <input type="text" class="cmd-input" placeholder="Type a command and press Enter..." autocomplete="off" spellcheck="false">
+                    <select class="baud-rate compact-select">
+                        <option value="300">300 baud</option>
+                        <option value="1200">1200 baud</option>
+                        <option value="2400">2400 baud</option>
+                        <option value="4800">4800 baud</option>
+                        <option value="9600">9600 baud</option>
+                        <option value="19200">19200 baud</option>
+                        <option value="38400">38400 baud</option>
+                        <option value="57600">57600 baud</option>
+                        <option value="74880">74880 baud</option>
+                        <option value="115200" selected>115200 baud</option>
+                        <option value="230400">230400 baud</option>
+                        <option value="250000">250000 baud</option>
+                        <option value="500000">500000 baud</option>
+                        <option value="1000000">1000000 baud</option>
+                        <option value="2000000">2000000 baud</option>
+                    </select>
+                    <select class="line-ending compact-select">
+                        <option value="none">No line ending</option>
+                        <option value="nl">Newline (NL)</option>
+                        <option value="cr">Carriage Return (CR)</option>
+                        <option value="both" selected>Both NL & CR</option>
+                    </select>
+                    <button class="clear-btn action-btn outline icon-btn" title="Clear Terminal">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M4 6h16 M4 10h16 M4 14h8 M4 18h8 M15 14l4 4 M19 14l-4 4" /></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="template-about" class="app-content">
+            <div style="width: 100%; height: 370px; display: flex; justify-content: center; align-items: center;">
+                <img id="about-pinout-img" style="max-width: 100%; max-height: 100%; display: none;" alt="Board Pinout">
+            </div>
+            <div class="about-container" style="display: flex; flex-direction: row; height: calc(100% - 370px); box-sizing: border-box; align-items: center; gap: 20px; padding: 20px;">
+                
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.05); padding-right: 20px;">
+                    <div style="margin-bottom: 6px; font-size: 16px; font-weight: 600; color: #ffffff;">
+                        Pico.Lab
+                    </div>
+                    
+                    <div style="margin-bottom: 18px; font-size: 13px; color: #a0a0ab;" class="info-fw">
+                        Loading...
+                    </div>
+                    
+                    <a href="https://github.com/CoretechR/picolab" target="_blank" 
+                    style="color: #0d84fa; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; background: rgba(13, 132, 250, 0.1); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(13, 132, 250, 0.2); transition: all 0.2s; font-size: 12px; white-space: nowrap;" 
+                    onmouseover="this.style.background='rgba(13, 132, 250, 0.2)'; this.style.borderColor='rgba(13, 132, 250, 0.4)';" 
+                    onmouseout="this.style.background='rgba(13, 132, 250, 0.1)'; this.style.borderColor='rgba(13, 132, 250, 0.2)';">
+                        🔗 GitHub
+                    </a>
+
+                    <div style="margin-top: 24px; font-size: 11px; color: #a0a0ab; line-height: 1.5;">
+                        <div>Copyright &copy; 2026 Maximilian Kern</div>
+                        <div>Licensed under <a href="https://github.com/CoretechR/picolab/blob/main/LICENSE" target="_blank" style="color: #0d84fa; text-decoration: none;">GPL-3.0</a></div>
+                    </div>
+                    <div style="margin-top: 4px; font-size: 10px; color: #a0a0ab; opacity: 0.6; line-height: 1.5;">
+                        Provided "as is" without warranty of any kind.
+                    </div>
+                </div>
+
+                <div style="flex: 1.3;">
+                    <table class="about-table">
+                        <tr><td>IP Address</td><td class="info-ip">Disconnected</td></tr>
+                        <tr><td>Chip Type</td><td class="info-chip">Loading...</td></tr>
+                        <tr><td>Serial Number</td><td class="info-serial">Loading...</td></tr>
+                        <tr><td>Flash </td><td class="info-flash">Loading...</td></tr>
+                        <tr><td>RAM</td><td class="info-ram">Loading...</td></tr>
+                        <tr><td>System Clock</td><td class="info-clock">Loading...</td></tr>
+                    </table>
+                </div>
+                
+            </div>
+        </div>
+
+        <div id="template-settings" class="app-content">
+            <div class="settings-container">
+                <div class="settings-section">
+                    <div class="settings-section-title">Appearance</div>
+                    <div class="settings-row settings-row-stack">
+                        <div>
+                            <div class="settings-label">Wallpaper Color</div>
+                        </div>
+                        <div class="settings-control-group">
+                            <input type="range" class="settings-range settings-theme-hue" min="0" max="360" step="1" value="0">
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label">Transparency</div>
+                        </div>
+                        <select class="compact-select settings-select settings-transparency-select">
+                            <option value="transparent">Transparent</option>
+                            <option value="solid">Solid</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-title">Logger</div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label">CSV Separator</div>
+                        </div>
+                        <select class="compact-select settings-select settings-csv-delimiter">
+                            <option value=",">Comma</option>
+                            <option value=";">Semicolon</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="template-i2c" class="app-content">
+            <div class="bus-layout">
+                <div class="bus-table-wrap terminal-display">
+                    <table class="bus-log-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Command</th>
+                                <th>Request</th>
+                                <th>Response</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="i2c-log-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="bus-controls">
+                    <div class="control-bar">
+                        <span class="ctrl-label">Addr (Hex)</span>
+                        <input type="text" id="i2c-addr" class="cmd-input" style="width: 70px;" placeholder="3C">
+                        <span class="ctrl-label">Tx (Hex)</span>
+                        <input type="text" id="i2c-tx" class="cmd-input" placeholder="00FF">
+                        <span class="ctrl-label">Rx Len</span>
+                        <input type="number" id="i2c-rx-len" class="cmd-input" style="width: 70px;" value="1" min="0" step="1">
+                    </div>
+                    <div class="control-bar">
+                        <button class="action-btn outline" id="btn-i2c-write">Write</button>
+                        <button class="action-btn outline" id="btn-i2c-read">Read</button>
+                        <button class="action-btn outline" id="btn-i2c-wr">Write then Read</button>
+                        <div class="bus-right-controls">
+                            <select class="compact-select" id="i2c-baud">
+                                <option value="100000">100 kHz (Std)</option>
+                                <option value="400000">400 kHz (Fast)</option>
+                                <option value="1000000">1 MHz (Fast+)</option>
+                            </select>
+                            <button class="action-btn outline" id="btn-i2c-scan">Scan Bus</button>
+                            <button class="clear-btn action-btn outline icon-btn" id="btn-i2c-clear-log" title="Clear Log">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M4 6h16 M4 10h16 M4 14h8 M4 18h8 M15 14l4 4 M19 14l-4 4" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="template-spi" class="app-content">
+            <div class="bus-layout">
+                <div class="bus-table-wrap terminal-display">
+                    <table class="bus-log-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Command</th>
+                                <th>Request</th>
+                                <th>Response</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="spi-log-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="bus-controls">
+                    <div class="control-bar">
+                        <span class="ctrl-label">Tx (Hex)</span>
+                        <input type="text" id="spi-tx" class="cmd-input" placeholder="00FFAA">
+                        <span class="ctrl-label">Rx Len</span>
+                        <input type="number" id="spi-rx-len" class="cmd-input" style="width: 70px;" value="1" min="0" step="1">
+                        <span class="ctrl-label">Pad (Hex)</span>
+                        <input type="text" id="spi-pad" class="cmd-input" style="width: 70px;" value="00">
+                    </div>
+                    <div class="control-bar">
+                        <button class="action-btn outline" id="btn-spi-write">Write</button>
+                        <button class="action-btn outline" id="btn-spi-read">Read</button>
+                        <button class="action-btn outline" id="btn-spi-wr">Write then Read</button>
+                        <div class="bus-right-controls">
+                            <select class="compact-select" id="spi-baud">
+                                <option value="1000000">1 MHz</option>
+                                <option value="5000000">5 MHz</option>
+                                <option value="10000000">10 MHz</option>
+                            </select>
+                            <button class="clear-btn action-btn outline icon-btn" id="btn-spi-clear-log" title="Clear Log">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M4 6h16 M4 10h16 M4 14h8 M4 18h8 M15 14l4 4 M19 14l-4 4" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <template id="pin-card-template">
+        <div class="card">
+            <div class="card-header drag-handle">
+                <div class="status-dot"></div>
+                <span class="pin-name">D2</span>
+                <div class="menu-container"><span class="menu-icon menu-toggle">☰</span></div>
+            </div>
+            
+            <input type="text" class="card-title" value="SPI_CS" spellcheck="false">
+
+            <div class="segmented-control mode-selector">
+                <button class="mode-btn active" data-mode="in">IN</button>
+                <button class="mode-btn" data-mode="out">OUT</button>
+                <button class="mode-btn" data-mode="pwm">PWM</button>
+            </div>
+
+            <div class="dynamic-area">
+                <div class="dynamic-row row-in">
+                    <div class="segmented-control">
+                        <button class="sub-btn">Pull-Up</button>
+                        <button class="sub-btn active">High-Z</button>
+                    </div>
+                </div>
+                <div class="dynamic-row row-out hidden">
+                    <div class="segmented-control">
+                        <button class="sub-btn">LOW</button>
+                        <button class="sub-btn active">HIGH</button>
+                    </div>
+                </div>
+                <div class="dynamic-row row-pwm hidden">
+                    <div class="slider-container">
+                        <span class="pwm-text">0%</span>
+                        <input type="range" min="0" max="100" value="0" class="styled-slider pwm-slider">
+                    </div>
+                </div>
+            </div>
+
+            <div class="popup-menu settings-menu">
+                <div class="menu-item">
+                    <label>Drive Strength</label>
+                    <select><option value="2">2 mA</option><option value="4">4 mA</option><option value="8">8 mA</option></select>
+                </div>
+                <div class="menu-item">
+                    <label>PWM Frequency (Hz)</label>
+                    <input type="number" min="1" max="1000000" value="1000" placeholder="e.g. 1000">
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="winbox.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
