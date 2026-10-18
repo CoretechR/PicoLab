@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
 ![Microcontroller](https://img.shields.io/badge/MCU-RP2040%20%7C%20RP2350-red.svg)
 
-<img src="images/Picolab.jpg" width="600" alt="PicoLab Title Image">
+<img src="images/picolab.jpg" width="600" alt="PicoLab Title Image">
 <br>
 
 ## Overview
