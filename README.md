@@ -4,7 +4,6 @@
 ![Microcontroller](https://img.shields.io/badge/MCU-RP2040%20%7C%20RP2350-red.svg)
 
 <img src="images/picolab.jpg" width="600" alt="PicoLab Title Image">
-<br>
 
 ## Overview
 
@@ -28,7 +27,6 @@ Pico.Lab is an open-source embedded bring-up tool built around the Raspberry Pi 
 Pico.Lab is built entirely on native, lightweight frameworks to maximize the RP2350's performance.
 
 <img src="images/overview.png" width="600" alt="">
-<br>
 
 *   **Firmware Backend (C)**:
     *   Built on the **Raspberry Pi Pico SDK**.
@@ -45,7 +43,6 @@ Pico.Lab is built entirely on native, lightweight frameworks to maximize the RP2
 Pico.Lab is designed to run best on the custom Pico.Lab board, but is fully compatible with standard Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350) boards out of the box. So if you have a Pico lying around, give the .uf2 files a try!
 
 <img src="images/PCB.jpg" width="600" alt="">
-<br>
 
 The Pico.Lab board adds the following features:
 * Support for logic voltages from 1.65V to 5.5V
