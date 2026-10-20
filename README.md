@@ -13,7 +13,7 @@ Pico.Lab is an open-source embedded bring-up tool built around the Raspberry Pi 
 
 *   **Easy to use**: A fast and intuitive window-based user interface lets you control all the integrated tools easily. It supports multitasking across its tools, windows-resizing and customization. For automation you can use the integrated CLI via the virtual COM port.
 *   **No extra software or hardware needed**: The entire graphical interface is hosted on device using a lightweight web server. No WebUSB needed - It works seamlessly in any browser on any modern operating system. At only 200 KB in size, the interface fits comfortably in the Pico's RAM and loads in a fraction of a second.
-*   **Integrated tools**: The firmware enables the Raspberry Pico to become a multi-functional instrument for analog and digital debugging. The following tools are implemented so far:
+*   **Integrated tools**: The firmware enables the Raspberry Pi Pico to become a multi-functional instrument for analog and digital debugging. The following tools are implemented so far:
     *   **Oscilloscope**: 4-channel analog capture with configurable timebase, voltage scaling, trigger settings, and continuous/single-shot modes. Utilizes overclocked ADC (192MHz) and DMA for high-speed continuous streaming for a bandwidth of around 400 kHz.
     *   **GPIO Control**: Directly read, write, and configure the 8 GPIO pins. Supports input/output modes, Pull-up configuration, and PWM control.
     *   **Data Logger**: Long-term, slow-rate sampling of both analog and digital pins with direct `.csv` export functionality.
@@ -91,7 +91,7 @@ mkdir build && cd build
 cmake ..
 make -j$(nproc)
 ```
-Select your type of Raspberry Pico board in the Pico SDK. For the Pico.Lab board, set the PICOLAB_HW_CUSTOM_BOARD define in board_config.h. You can also use this file to modify the pins for GPIO, SPI, I2C and UART.
+Select your type of Raspberry Pi Pico board in the Pico SDK. For the Pico.Lab board, set the PICOLAB_HW_CUSTOM_BOARD define in board_config.h. You can also use this file to modify the pins for GPIO, SPI, I2C and UART.
 
 Flash the resulting `.uf2` file to your board by holding the `BOOTSEL` button while plugging it in, then drag-and-drop the file to the `RPI-RP2` drive.
 
