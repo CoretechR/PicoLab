@@ -3,7 +3,9 @@
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
 ![Microcontroller](https://img.shields.io/badge/MCU-RP2040%20%7C%20RP2350-red.svg)
 
-<img src="images/picolab.jpg" width="600" alt="PicoLab Title Image">
+<a href="https://www.youtube.com/watch?v=0kItmMn9lGs">
+  <img src="images/picolab.jpg" width="600" alt="Pico.Lab YouTube Video">
+</a>
 
 ## Overview
 
